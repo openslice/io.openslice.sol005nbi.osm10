@@ -40,30 +40,6 @@ public class OSM10VNFRequirements {
     public OSM10VNFRequirements()
     {}
     
-//    public OSM10VNFRequirements(Vnfd descriptor) {
-//        this.descriptor = descriptor;
-//
-//        this.memoryMB = 0;
-//        this.storageGB = 0;
-//        this.vcpuCount = 0;
-//        this.vmCount = 0;
-//        Map<VduKey,Vdu> vduMap = descriptor.getVdu();
-//        for(Vdu vdu : vduMap.values() ) {   
-//
-//    		int cnt =1;
-//        	if ( vdu.getCount() != null ) {
-//        		cnt = vdu.getCount().intValue(); 
-//        	}
-//        	
-//        	if (  vdu.getVmFlavor() != null ) {
-//                this.memoryMB +=  cnt  * vdu.getVmFlavor().getMemoryMb().intValue();
-//                this.storageGB += cnt * vdu.getVmFlavor().getStorageGb().intValue();
-//                this.vcpuCount += cnt * 1;//vdu.getVmFlavor().getVcpuCount().intValue();
-//                this.vmCount += cnt;
-//        	}
-//        }
-//    }
-    
     public OSM10VNFRequirements(org.opendaylight.yang.gen.v1.urn.etsi.nfv.yang.etsi.nfv.descriptors.rev190425.Vnfd vnfHackfestMultiVduDescriptor) {
 		  this.descriptor = vnfHackfestMultiVduDescriptor;
 		
