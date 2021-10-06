@@ -48,17 +48,20 @@ public class OSM10VNFRequirements {
 		  this.vcpuCount = 0;
 		  this.vmCount = 0;
 		  Map<VirtualComputeDescKey, VirtualComputeDesc> virtualComputeDescMap = vnfHackfestMultiVduDescriptor.getVirtualComputeDesc();
-		  for(VirtualComputeDesc tmp : virtualComputeDescMap.values())
-		  {
-			  this.memoryMB = tmp.getVirtualMemory().getSize().intValue();
-			  this.vcpuCount = tmp.getVirtualCpu().getNumVirtualCpu().intValue();
-			  this.vmCount++;
-		  }
-		  Map<VirtualStorageDescKey, VirtualStorageDesc> virtualStorageDescMap = vnfHackfestMultiVduDescriptor.getVirtualStorageDesc();
-		  for(VirtualStorageDesc tmp : virtualStorageDescMap.values())
-		  {
-			  this.storageGB = tmp.getSizeOfStorage().intValue();
-		  }	  
+		  if ( virtualComputeDescMap != null) {
+			  for(VirtualComputeDesc tmp : virtualComputeDescMap.values())
+			  {
+				  this.memoryMB = tmp.getVirtualMemory().getSize().intValue();
+				  this.vcpuCount = tmp.getVirtualCpu().getNumVirtualCpu().intValue();
+				  this.vmCount++;
+			  }
+			  Map<VirtualStorageDescKey, VirtualStorageDesc> virtualStorageDescMap = vnfHackfestMultiVduDescriptor.getVirtualStorageDesc();
+			  for(VirtualStorageDesc tmp : virtualStorageDescMap.values())
+			  {
+				  this.storageGB = tmp.getSizeOfStorage().intValue();
+			  }	   
+		  } 
+		   
 	}
 
     public String toHTML() {
