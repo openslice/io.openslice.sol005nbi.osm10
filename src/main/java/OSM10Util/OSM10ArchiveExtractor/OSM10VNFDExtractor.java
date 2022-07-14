@@ -29,6 +29,8 @@ import java.net.URL;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opendaylight.yang.gen.v1.urn.etsi.nfv.yang.etsi.nfv.descriptors.rev190425.Vnfd;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +39,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.openslice.sol005nbi.OSMUtil.OSMVNFDExtractor;
 
 public class OSM10VNFDExtractor implements OSMVNFDExtractor{
+	private static final Logger logger = LogManager.getLogger(OSM10VNFDExtractor.class);
 
     private static int BUFFER_SIZE = 4 * 1024;
 
@@ -54,7 +57,7 @@ public class OSM10VNFDExtractor implements OSMVNFDExtractor{
     public Vnfd extractVnfdDescriptor() throws IOException {
     	Vnfd descriptor = null;
     	// Read the vnf descriptor file
-    	//System.out.println("Get the file from "+"http://localhost:13000"+this.VNFDescriptorFilePath);
+    	//logger.debug("Get the file from "+"http://localhost:13000"+this.VNFDescriptorFilePath);
     	//try (InputStream in = new URL("http://localhost:13000"+this.VNFDescriptorFilePath).openStream();
         try (InputStream in = new FileInputStream(VNFDescriptorFilePath);
     		//unzip
@@ -67,7 +70,7 @@ public class OSM10VNFDExtractor implements OSMVNFDExtractor{
                 // If the file ends in .yaml
                 if (entry.getName().endsWith(".yaml")) {
 
-					System.out.println("INFO: Examining " + entry.getName() + " for vnfd tag..." );
+                	logger.info("INFO: Examining " + entry.getName() + " for vnfd tag..." );
 					// Create a new file
 					ByteArrayOutputStream file = new ByteArrayOutputStream();
 					
@@ -206,7 +209,7 @@ public class OSM10VNFDExtractor implements OSMVNFDExtractor{
 		}
 		catch(Exception e)
 		{
-			System.out.println("Cannot read yaml file");
+			logger.error("Cannot read yaml file");
 		}
 		    					   
 	    // If there is a node found
@@ -222,14 +225,14 @@ public class OSM10VNFDExtractor implements OSMVNFDExtractor{
 			s = s.replaceAll("rw-vnfd:", ""); //some yaml files contain  rw-vnfd: prefix in every key which is not common in json
 			//Replace vnfd with empty string
 			s = s.replaceAll("vnfd:", ""); //some yaml files contain  nsd: prefix in every key which is not common in json
-			System.out.println("Yaml file:"+s);
+			logger.debug("Yaml file:"+s);
 			//try {
 			descriptor = mapper.readValue( s , Vnfd.class);
 			//}catch (Exception e) {
-			//	System.out.println("ERROR: " + entry.getName() + " cannot be read as Vnfd class! " + e.getMessage());        						
+			//	logger.error("ERROR: " + entry.getName() + " cannot be read as Vnfd class! " + e.getMessage());        						
 			//}                        	
 		}else {
-			System.out.println("ERROR: The yaml file does not contain vnfd tag! " );
+			logger.error("ERROR: The yaml file does not contain vnfd tag! " );
 		}
 		return descriptor;
     }

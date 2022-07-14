@@ -947,9 +947,9 @@ public class OSM10Client implements OSMClient {
 		ResponseEntity<String> entity = null;
 		entity = restTemplate.exchange(this.getMANOApiEndpoint() + "/osm/admin/v1/tokens/", HttpMethod.POST, request,
 				String.class);
-		System.out.printf(entity.getHeaders().toString());
-		System.out.printf(entity.getBody());
-		System.out.printf(entity.toString());
+		logger.debug(entity.getHeaders().toString());
+		logger.debug(entity.getBody());
+		logger.debug(entity.toString());
 
 		JSONObject obj = new JSONObject(entity.getBody());
 		this.setΜΑΝΟAuthorizationBasicHeader(obj.getString("id"));
@@ -1090,8 +1090,8 @@ public class OSM10Client implements OSMClient {
 
 	public void getNSDescriptors() {
 		ResponseEntity<String> response = this.getOSMResponse("/osm/nsd/v1/ns_descriptors/");
-		System.out.printf(response.getHeaders().toString());
-		System.out.printf(response.getBody());
+		logger.debug(response.getHeaders().toString());
+		logger.debug(response.getBody());
 	}
 	
 	public ResponseEntity<String> getNSDescriptorsList() {
