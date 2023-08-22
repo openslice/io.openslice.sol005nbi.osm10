@@ -42,14 +42,20 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -79,7 +85,7 @@ public class OSM10Client implements OSMClient {
 
 	private static final Logger logger = LogManager.getLogger(OSM10Client.class);
 
-	private CloseableHttpClient httpClient;
+	private HttpClient httpClient;
 	private String manoProjectId;
 	private String manoUsername;
 	private String manoPassword;
@@ -103,12 +109,12 @@ public class OSM10Client implements OSMClient {
 	}
 
 	public void closeConn() {
-		try {
-			this.httpClient.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			this.httpClient.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		try {
 			this.requestFactory.destroy();
 		} catch (Exception e) {
@@ -132,12 +138,21 @@ public class OSM10Client implements OSMClient {
 			// create an SSL Socket Factory to use the SSLContext with the trust self signed
 			// certificate strategy
 			// and allow all hosts verifier.
-			SSLConnectionSocketFactory connectionFactory = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
-
-			httpClient = HttpClients.custom().setSSLSocketFactory(connectionFactory)
+			SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
+			RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
+			registryBuilder.register("https", sslConnectionFactory);
+			registryBuilder.register("http", PlainConnectionSocketFactory.INSTANCE);
+			Registry<ConnectionSocketFactory> rgb = registryBuilder.build();
+			
+			HttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager( rgb  );
+			
+			httpClient = HttpClients
+					.custom()
+					.setConnectionManager(ccm)
 					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
 					.build();
 			requestFactory = new HttpComponentsClientHttpRequestFactory();
+
 			requestFactory.setHttpClient(httpClient);
 			requestFactory.setConnectTimeout(2000);			
 		} catch (KeyManagementException e) {
@@ -239,10 +254,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.GET, request, String.class);
 		} catch (RuntimeException e) {
 			if (get_vnfd_entities != null) {
-				if (get_vnfd_entities.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (get_vnfd_entities.getStatusCode().is5xxServerError() ) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + get_vnfd_entities.getStatusCode().toString());
-				} else if (get_vnfd_entities.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (get_vnfd_entities.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + get_vnfd_entities.getStatusCode().toString());
 					if (get_vnfd_entities.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -464,10 +479,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, create_ns_instance_request, String.class);
 		} catch (RuntimeException e) {
 			if (create_ns_instance_entity != null) {
-				if (create_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (create_ns_instance_entity.getStatusCode().is5xxServerError() ) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + create_ns_instance_entity.getStatusCode().toString());
-				} else if (create_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (create_ns_instance_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + create_ns_instance_entity.getStatusCode().toString());
 					if (create_ns_instance_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -515,10 +530,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, create_ns_instance_request, String.class);
 		} catch (RuntimeException e) {
 			if (create_ns_instance_entity != null) {
-				if (create_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (create_ns_instance_entity.getStatusCode().is5xxServerError() ) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + create_ns_instance_entity.getStatusCode().toString());
-				} else if (create_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (create_ns_instance_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + create_ns_instance_entity.getStatusCode().toString());
 					if (create_ns_instance_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -697,10 +712,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, request, String.class);
 		} catch (RuntimeException e) {
 			if (terminate_ns_instance_entity != null) {
-				if (terminate_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (terminate_ns_instance_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + terminate_ns_instance_entity.getStatusCode().toString());
-				} else if (terminate_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (terminate_ns_instance_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + terminate_ns_instance_entity.getStatusCode().toString());
 					if (terminate_ns_instance_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -758,10 +773,10 @@ public class OSM10Client implements OSMClient {
 				this.getMANOApiEndpoint() + "/osm/nslcm/v1/ns_instances/" + ns_instance_id, HttpMethod.DELETE, request,
 				String.class);
 		if (delete_ns_instance_entity != null) {
-			if (delete_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+			if (delete_ns_instance_entity.getStatusCode().is5xxServerError()) {
 				// handle SERVER_ERROR
 				System.out.println("Server ERROR:" + delete_ns_instance_entity.getStatusCode().toString());
-			} else if (delete_ns_instance_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+			} else if (delete_ns_instance_entity.getStatusCode().is4xxClientError() ) {
 				// handle CLIENT_ERROR
 				System.out.println("Client ERROR:" + delete_ns_instance_entity.getStatusCode().toString());
 				if (delete_ns_instance_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -916,15 +931,23 @@ public class OSM10Client implements OSMClient {
 			// create an SSL Socket Factory to use the SSLContext with the trust self signed
 			// certificate strategy
 			// and allow all hosts verifier.
-			SSLConnectionSocketFactory connectionFactory = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
-
-			httpClient = HttpClients.custom().setSSLSocketFactory(connectionFactory)
+			SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sslContext, allowAllHosts);
+			RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
+			registryBuilder.register("https", sslConnectionFactory);
+			registryBuilder.register("http", PlainConnectionSocketFactory.INSTANCE);
+			Registry<ConnectionSocketFactory> rgb = registryBuilder.build();
+			
+			HttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager( rgb  );
+			
+			httpClient = HttpClients
+					.custom()
+					.setConnectionManager(ccm)
 					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
 					.build();
 			requestFactory = new HttpComponentsClientHttpRequestFactory();
 
-			// Get the token
 			requestFactory.setHttpClient(httpClient);
+			requestFactory.setConnectTimeout(2000);			
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -955,12 +978,12 @@ public class OSM10Client implements OSMClient {
 		this.setΜΑΝΟAuthorizationBasicHeader(obj.getString("id"));
 		OSM10Client.setManoAuthorizationTokenTimeout(obj.getDouble("expires"));
 		OSM10Client.setManoAuthorizationTokenID(obj.getString("id"));
-		try {
-			httpClient.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			httpClient.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	private static String getManoAuthorizationTokenID() {
@@ -1110,10 +1133,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.GET, request, String.class);
 		} catch (RuntimeException e) {
 			if (get_nsd_entities != null) {
-				if (get_nsd_entities.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (get_nsd_entities.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + get_nsd_entities.getStatusCode().toString());
-				} else if (get_nsd_entities.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (get_nsd_entities.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + get_nsd_entities.getStatusCode().toString());
 					if (get_nsd_entities.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1147,10 +1170,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.GET, request, String.class);
 		} catch (RuntimeException e) {
 			if (get_ns_instances != null) {
-				if (get_ns_instances.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (get_ns_instances.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + get_ns_instances.getStatusCode().toString());
-				} else if (get_ns_instances.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (get_ns_instances.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + get_ns_instances.getStatusCode().toString());
 					if (get_ns_instances.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1185,10 +1208,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.GET, request, String.class);
 		} catch (RuntimeException e) {
 			if (get_vim_entities != null) {
-				if (get_vim_entities.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (get_vim_entities.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + get_vim_entities.getStatusCode().toString());
-				} else if (get_vim_entities.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (get_vim_entities.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + get_vim_entities.getStatusCode().toString());
 					if (get_vim_entities.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1221,10 +1244,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, create_ns_instance_request, String.class);
 		} catch (RuntimeException e) {
 			if (create_vim_entity != null) {
-				if (create_vim_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (create_vim_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + create_vim_entity.getStatusCode().toString());
-				} else if (create_vim_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (create_vim_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + create_vim_entity.getStatusCode().toString());
 					if (create_vim_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1256,10 +1279,10 @@ public class OSM10Client implements OSMClient {
 					create_ns_instance_request, String.class);
 		} catch (RuntimeException e) {
 			if (edit_vim_entity != null) {
-				if (edit_vim_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (edit_vim_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + edit_vim_entity.getStatusCode().toString());
-				} else if (edit_vim_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (edit_vim_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + edit_vim_entity.getStatusCode().toString());
 					if (edit_vim_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1292,10 +1315,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, create_user_request, String.class);
 		} catch (RuntimeException e) {
 			if (create_user_entity != null) {
-				if (create_user_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (create_user_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + create_user_entity.getStatusCode().toString());
-				} else if (create_user_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (create_user_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + create_user_entity.getStatusCode().toString());
 					if (create_user_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1331,10 +1354,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.PATCH, edit_user_request, String.class);
 		} catch (RuntimeException e) {
 			if (edit_user_entity != null) {
-				if (edit_user_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (edit_user_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + edit_user_entity.getStatusCode().toString());
-				} else if (edit_user_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (edit_user_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + edit_user_entity.getStatusCode().toString());
 					if (edit_user_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1364,10 +1387,10 @@ public class OSM10Client implements OSMClient {
 					HttpMethod.POST, create_project_request, String.class);
 		} catch (RuntimeException e) {
 			if (create_project_entity != null) {
-				if (create_project_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (create_project_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + create_project_entity.getStatusCode().toString());
-				} else if (create_project_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (create_project_entity.getStatusCode().is4xxClientError()) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + create_project_entity.getStatusCode().toString());
 					if (create_project_entity.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -1399,10 +1422,10 @@ public class OSM10Client implements OSMClient {
 					edit_project_request, String.class);
 		} catch (RuntimeException e) {
 			if (edit_user_entity != null) {
-				if (edit_user_entity.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
+				if (edit_user_entity.getStatusCode().is5xxServerError()) {
 					// handle SERVER_ERROR
 					System.out.println("Server ERROR:" + edit_user_entity.getStatusCode().toString());
-				} else if (edit_user_entity.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+				} else if (edit_user_entity.getStatusCode().is4xxClientError() ) {
 					// handle CLIENT_ERROR
 					System.out.println("Client ERROR:" + edit_user_entity.getStatusCode().toString());
 					if (edit_user_entity.getStatusCode() == HttpStatus.NOT_FOUND) {

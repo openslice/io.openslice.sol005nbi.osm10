@@ -16,6 +16,8 @@
 	
 	<inceptionYear>2021</inceptionYear>
 	
+	
+	
 	<licenses>
         <license>
             <name>Apache 2.0</name>
@@ -38,11 +40,7 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.3.RELEASE</version>
-    </parent>
+
     
 	<repositories>
 		<repository>
@@ -64,6 +62,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven-license-plugin.version>2.0.0</maven-license-plugin.version>
 		<license.licenseName>apache_v2</license.licenseName>
+		<spring.boot-version>3.1.2</spring.boot-version>
+		<camel.version>4.0.0-RC2</camel.version>
     </properties>
 	<dependencyManagement>
 		<dependencies>
@@ -74,10 +74,29 @@
 			    <version>6.0.5</version>
 			    <type>pom</type>
 			</dependency>
+			<!-- Spring Boot BOM -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot-version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	
 	<dependencies>
+		<!-- Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 		    <groupId>com.google.code.findbugs</groupId>
 		    <artifactId>jsr305</artifactId>
@@ -107,6 +126,22 @@
 		    <version>0.7.4-Lithium-SR4</version>
 		</dependency>
 		        		
+		        		
+
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5 -->
+		<dependency>
+		    <groupId>org.apache.httpcomponents.client5</groupId>
+		    <artifactId>httpclient5</artifactId>
+		    <version>5.2.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5-fluent -->
+		<dependency>
+		    <groupId>org.apache.httpcomponents.client5</groupId>
+		    <artifactId>httpclient5-fluent</artifactId>
+		    <version>5.2.1</version>
+		</dependency>
+		        		
+		        		
 		<!-- Dependencies for OSMClient START -->
         <dependency>
             <groupId>io.openslice.sol005nbi</groupId>
@@ -132,17 +167,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            </dependency>        
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <type>jar</type>
-        </dependency>
+            </dependency> 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -187,6 +212,10 @@
 		    <artifactId>org.eclipse.jdt.annotation</artifactId>
 		    <version>2.2.600</version>
 		</dependency>
+		
+		
+		
+		
 	</dependencies>
 	
     <build>
