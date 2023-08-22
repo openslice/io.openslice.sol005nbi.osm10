@@ -44,6 +44,8 @@ import javax.net.ssl.SSLContext;
 import org.apache.commons.io.FileUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -55,7 +57,6 @@ import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -149,7 +150,7 @@ public class OSM10Client implements OSMClient {
 			httpClient = HttpClients
 					.custom()
 					.setConnectionManager(ccm)
-					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(StandardCookieSpec.STRICT).build())
 					.build();
 			requestFactory = new HttpComponentsClientHttpRequestFactory();
 
@@ -942,7 +943,7 @@ public class OSM10Client implements OSMClient {
 			httpClient = HttpClients
 					.custom()
 					.setConnectionManager(ccm)
-					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+					.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec( StandardCookieSpec.STRICT ).build())
 					.build();
 			requestFactory = new HttpComponentsClientHttpRequestFactory();
 
