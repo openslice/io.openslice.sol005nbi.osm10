@@ -389,7 +389,7 @@ public class OSM10Client implements OSMClient {
 
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("content-type", "application/zip");
+		headers.add("content-type", "application/gzip");
 		headers.add("Authorization", "Bearer " + this.getMANOAuthorizationBasicHeader());
 		HttpEntity<byte[]> send_zip_request = new HttpEntity<>(allBytes, headers);
 		try {
@@ -428,7 +428,7 @@ public class OSM10Client implements OSMClient {
 	public ResponseEntity<String> uploadNSDPackageContent(String nsd_id, byte[] allBytes) throws IOException {
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("content-type", "application/zip");
+		headers.add("content-type", "application/gzip");
 		headers.add("Authorization", "Bearer " + this.getMANOAuthorizationBasicHeader());
 		HttpEntity<byte[]> send_zip_request = new HttpEntity<>(allBytes, headers);
 		try {
