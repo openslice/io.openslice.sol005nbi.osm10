@@ -27,6 +27,8 @@ import java.io.InputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opendaylight.yang.gen.v1.urn.etsi.nfv.yang.etsi.nfv.descriptors.rev190425.Nsd;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +39,8 @@ import io.openslice.sol005nbi.OSMUtil.OSMNSExtractor;
 
 
 public class OSM10NSExtractor implements OSMNSExtractor{
+	private static final Logger logger = LogManager.getLogger(OSM10NSExtractor.class);
+	
 	private static int BUFFER_SIZE = 4 * 1024;
 
 	private File NSDescriptorFile;
@@ -123,9 +127,9 @@ public class OSM10NSExtractor implements OSMNSExtractor{
 			s = s.replaceAll("rw-nsd:", ""); //some yaml files contain  rw-nsd: prefix in every key which is not common in json    					
 			s = s.replaceAll("nsd:", ""); //some yaml files contain  nsd: prefix in every key which is not common in json			
 			descriptor = mapper.readValue( s , Nsd.class);
-			System.out.println(descriptor);
+			logger.debug("Descriptor:"+descriptor);
         } else {
-			System.out.println("ERROR: The yaml file does not contain nsd tag! " );
+			logger.error("ERROR: The yaml file does not contain nsd tag! " );
         }
 		return descriptor;
 	}
